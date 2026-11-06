@@ -2,6 +2,7 @@
 name = "rust-webserver"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.88"  # pulled up by the `compute` dependency — see its Cargo.toml
 
 [[bin]]
 name = "rust-webserver"
@@ -26,3 +27,6 @@ anyhow = "1.0"
 reqwest = { version = "0.11", features = ["json", "blocking"] }
 rusqlite = { version = "0.38.0", features = ["bundled"] }
 edms = { path = "libs/edms" }
+sha2 = "0.10"
+hex = "0.4"
+chrono = { version = "0.4", features = ["serde"] }

@@ -43,32 +43,6 @@ pub async fn delete_folder(
     }
 }
 
-pub async fn merge_folder(
-    State(_state): State<AppState>,
-    Path(folder): Path<String>,
-) -> (StatusCode, Json<serde_json::Value>) {
-    // Spawn edms-child to handle the merge — result comes back via /internal/callback
-    ipc::spawn_child(
-        "export_merge",
-        json!({
-            "inputs":  [],
-            "folders": [folder],
-            "output":  format!("edms_root/exports/{folder}-merged.zip"),
-        }),
-        3000,
-    );
-
-    // Return immediately — this is fire and forget, result arrives via callback
-    (
-        StatusCode::ACCEPTED,
-        Json(json!({
-            "ok": true,
-            "status": "merge queued",
-            "folder": folder,
-        })),
-    )
-}
-
 pub async fn ws_make_folder_active(
     ws: WebSocketUpgrade,
     State(state): State<AppState>,
@@ -128,8 +102,8 @@ pub async fn dashboard(State(state): State<AppState>) -> (StatusCode, Json<serde
             let endpoints = db::list_endpoints(&st.core, &st.queries)
                 .map(|v| v.len())
                 .unwrap_or(0);
-            let bookmarks = db::bookmarks_count_active(&st.core).unwrap_or(0);
-            let history = db::history_count(&st.core).unwrap_or(0);
+            let bookmarks = db::bookmarks_count_total(&st.core, &st.queries).unwrap_or(0);
+            let history = db::history_count(&st.core, &st.queries).unwrap_or(0);
             (endpoints, bookmarks, history)
         }
     })

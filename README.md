@@ -1,8 +1,28 @@
+<br />
+<img src="images/htlogo-text.png" width="250"/>
+
 # Endpoint Data Management System (EDMS)
 _Standalone system for a team building microservices_
 
+
+## Quick Start
+* EDMS runs locally as a standalone service
+* No installation or setup necessary.
+* Need to have some Container application like Docker, Podman, Singularity etc running
+
+**Instructions**
+```bash
+git clone https://github.com/hashedtokens/edms
+git checkout -b latest origin/latest
+cd init 
+docker compose build
+docker compose up
+# open browser type, localhost:3911
+```
+
 ## Core Idea
 During development stages `endpoints` may not change, but the associated QP pairs keep changing. The change is not just linked to the QP schemas which might be static or in rare cases well defined, but also related to the data bound to the keys contained in the QP. So, it leads to a problem we define as `EQP Chaos`. 
+
 
 ## Eliminate `EQP Chaos`
 * _Communication breaks_ when multiple servers talking to each other with evolving QP pairs per E
@@ -16,9 +36,9 @@ During development stages `endpoints` may not change, but the associated QP pair
 So, EDMS helps to reduce the chaos so that development progresses without hassle, regardless of the team size, without having to compromise speed or efficiency.  
 
 ## Features
-* :white_check_mark: **Web View** - Users can create a `hostable static website` view for all the filtered set of endpoints
-* :white_check_mark: **Repo Ready** - Versioned EQP Data can be generated in a way that's easy to push to a repo
-* :white_check_mark: **Test View** - Endpoints can be tested in real time with advanced options 
+* :white_check_mark: **Web View (EQP Docs)** - Users can create a `hostable static website` view for all the filtered set of endpoints
+* :white_check_mark: **Repo Ready (Git friendly)** - Versioned EQP Data can be generated in a way that's easy to push to a repo
+* :white_check_mark: **Test View** - Endpoints can be tested in real-time with advanced options 
 * :white_check_mark: **Filter / Merge Data** - Endpoints from multiple sources / team members can be easily filtered into independent collections or merged into one collection
 * 🚧 **Share** - Sharing endpoints with teams `Work-In-Progress`
 * 🚧 **Online Backup** - Securely backup your EQP data online `Work-In-Progress`

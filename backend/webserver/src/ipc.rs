@@ -42,7 +42,9 @@ pub struct IpcCallback {
 
 // ── Spawn helper ─────────────────────────────────────────────────────
 
-pub fn spawn_child(task: &str, payload: serde_json::Value, callback_port: u16) {
+/// Returns whether the child process was actually started (callers that
+/// have a job waiting on it fail the job when it wasn't; the rest ignore it).
+pub fn spawn_child(task: &str, payload: serde_json::Value, callback_port: u16) -> bool {
     let request = IpcRequest {
         task: task.to_string(),
         payload,
@@ -53,7 +55,7 @@ pub fn spawn_child(task: &str, payload: serde_json::Value, callback_port: u16) {
         Ok(j) => j,
         Err(e) => {
             error!("[ipc] Failed to serialize IpcRequest: {e}");
-            return;
+            return false;
         }
     };
 
@@ -62,14 +64,25 @@ pub fn spawn_child(task: &str, payload: serde_json::Value, callback_port: u16) {
         task, callback_port
     );
 
-    // Try the release binary first, fall back to debug
-    let child_bin = if std::path::Path::new("./target/release/edms-child").exists() {
-        "./target/release/edms-child"
-    } else {
-        "./target/debug/edms-child"
-    };
+    // Windows binaries need the .exe suffix to actually match on disk —
+    // Path::exists() does not auto-resolve it the way CreateProcess does,
+    // so without this every check below silently failed on Windows and
+    // this always fell through to the last (debug) branch regardless of
+    // which one was actually newest, silently running a stale binary.
+    let suffix = std::env::consts::EXE_SUFFIX;
+    let candidates = [
+        format!("./target/release/edms-child{suffix}"),
+        format!("./target/debug/edms-child{suffix}"),
+        format!("../compute/target/release/edms-child{suffix}"),
+        format!("../compute/target/debug/edms-child{suffix}"),
+    ];
+    let child_bin = candidates
+        .iter()
+        .find(|p| std::path::Path::new(p).exists())
+        .cloned()
+        .unwrap_or_else(|| candidates.last().unwrap().clone());
 
-    let spawn_result = Command::new(child_bin)
+    let spawn_result = Command::new(&child_bin)
         .stdin(Stdio::piped())
         .stdout(Stdio::null()) // detached — we don't read stdout
         .stderr(Stdio::inherit()) // keep stderr so child logs are visible
@@ -88,6 +101,7 @@ pub fn spawn_child(task: &str, payload: serde_json::Value, callback_port: u16) {
             std::mem::forget(child);
 
             info!("[ipc] Child spawned and detached for task='{}'", task);
+            true
         }
         Err(e) => {
             error!(
@@ -95,6 +109,7 @@ pub fn spawn_child(task: &str, payload: serde_json::Value, callback_port: u16) {
                  Make sure you've run `cargo build` so the binary exists.",
                 child_bin
             );
+            false
         }
     }
 }

@@ -2,6 +2,11 @@
 name = "compute"
 version = "0.1.0"
 edition = "2024"
+# edition 2024 needs rustc >= 1.85; a dependency pushes the real floor to
+# 1.88. Declared so `cargo build` on an older toolchain fails with a
+# clear "requires rustc 1.88" message instead of a cryptic edition error
+# (issue #31 — Wesley). Docker's rust:1.90 image is fine.
+rust-version = "1.88"
 
 [lib]
 name = "compute"
@@ -23,16 +28,22 @@ axum = "0.7"
 tokio = {version = "1", features = ["full"]}
 tower = {version = "0.4", features = ["limit"] }
 tower-http = { version = "0.5", features = ["cors","trace","limit"] }
-rusqlite = "0.38.0"
+rusqlite = { version = "0.38.0", features = ["bundled"] }
+edms = { path = "../webserver/libs/edms" }
 chrono = "0.4.44"
 uuid = {version = "1.21.0", features = ["v4"]}
 tracing = "0.1.44"
+sha2 = "0.10"
+hex = "0.4"
 tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
 serde_json = "1.0.149"
 reqwest = { version = "0.12", features = ["json"] }
 tokio-tungstenite = "0.29.0"
 url = "2.5.8"
 futures-util = "0.3.32"
+# We only need printpdf's document-writing API. Disabling its optional default
+# features keeps this compute task smaller because we are not rendering PDFs.
+printpdf = { version = "0.12.8", default-features = false }
 
 [dev-dependencies]
 tempfile = "3.0"
